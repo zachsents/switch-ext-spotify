@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "effect": "^4.1.5",
-    "switch-ext-kit": "github:zachsents/switch-ext-kit#55f5b30"
+    "switch-ext-kit": "github:zachsents/switch-ext-kit#e147a30"
   },
   "devDependencies": {
     "@types/bun": "^1.4.5",
