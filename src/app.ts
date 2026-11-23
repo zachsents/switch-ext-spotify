@@ -392,7 +392,7 @@ const removeFromPlaylist = tool(
   "remove_from_playlist",
   {
     description:
-      "Remove tracks or episodes (URIs or links) from a playlist: every occurrence of each. snapshot: the playlist version they were read from.",
+      "Remove tracks or episodes (URIs or links) from a playlist. snapshot: the playlist version they were read from.",
     input: Schema.Struct({
       playlist: Schema.String,
       uris,
