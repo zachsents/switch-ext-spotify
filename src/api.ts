@@ -1,6 +1,6 @@
 // The Spotify Web API as the user's connected account. The account and its access tokens come from
 // Switch's connections through the host (`connections/list`, `connections/token`); this keeps none.
-import { Context, Deferred, Effect, Layer } from "effect"
+import { Context, Deferred, Effect, Layer, Queue } from "effect"
 import { Peer } from "switch-ext-kit"
 import type { PeerService, Send } from "switch-ext-kit"
 
@@ -19,6 +19,8 @@ export interface SpotifyShape {
     path: string,
     options?: { readonly query?: Query; readonly body?: unknown },
   ) => Effect.Effect<unknown, SpotifyError>
+  /** Waits until a call changes the player (play, pause, skip, seek, a device). */
+  readonly changed: Effect.Effect<void>
 }
 
 export class Spotify extends Context.Service<Spotify, SpotifyShape>()("spotify/Spotify") {}
@@ -50,6 +52,7 @@ const unreached = (e: unknown) =>
 
 const make = Effect.gen(function* making() {
   const ready = yield* Deferred.make<Send | null>()
+  const changes = yield* Queue.sliding<true>(1)
   let held: { readonly token: string; readonly expires: number } | null = null
 
   const ask = (method: string, params: Readonly<Record<string, unknown>>) =>
@@ -86,7 +89,7 @@ const make = Effect.gen(function* making() {
     return held.token
   })
 
-  const call: SpotifyShape["call"] = (method, path, options = {}) =>
+  const request: SpotifyShape["call"] = (method, path, options = {}) =>
     token.pipe(
       Effect.flatMap((bearer) =>
         Effect.tryPromise({
@@ -124,12 +127,17 @@ const make = Effect.gen(function* making() {
       ),
     )
 
+  const call: SpotifyShape["call"] = (method, path, options) =>
+    method !== "GET" && path.startsWith("/me/player")
+      ? Effect.tap(request(method, path, options), () => Queue.offer(changes, true))
+      : request(method, path, options)
+
   const peer = {
     attach: (send: Send | null) => {
       Deferred.doneUnsafe(ready, Effect.succeed(send))
     },
   }
-  return { spotify: { call }, peer }
+  return { spotify: { call, changed: Effect.asVoid(Queue.take(changes)) }, peer }
 })
 
 /** Spotify, and the `Peer` that `serve` hands the host's connection to. */

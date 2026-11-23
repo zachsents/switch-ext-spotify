@@ -37,4 +37,11 @@ export const DeviceChanged = defineEvent(
   Schema.Struct({ device: Device, from: Schema.NullOr(Device) }),
 )
 
-export const spotifyEvents = [Playing, Started, Paused, DeviceChanged]
+/** It jumped within the same track or episode: a seek, or back to its start. */
+export const Seeked = defineEvent(
+  "spotify.seeked",
+  1,
+  Schema.Struct({ item: Item, progress_ms: Schema.Finite }),
+)
+
+export const spotifyEvents = [Playing, Started, Paused, DeviceChanged, Seeked]

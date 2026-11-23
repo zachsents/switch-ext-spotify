@@ -1,6 +1,8 @@
 # switch-ext-spotify
 
-Spotify on every device the user has: playback (play, pause, skip, seek, volume, shuffle, repeat, transfer, the queue), search, their playlists (read, make, edit, add, remove, reorder, replace), their library (saved and followed) and history (recent, top). Events when what's playing changes, when playback starts or pauses, and when it moves to another device; Spotify pushes nothing, so the player is polled every 5 seconds while something plays and every minute otherwise.
+Spotify on every device the user has: playback (play, pause, skip, seek, volume, shuffle, repeat, transfer, the queue), search, their playlists (read, make, edit, add, remove, reorder, replace), their library (saved and followed) and history (recent, top). Events when what's playing changes, when playback starts or pauses, when it jumps within a track, and when it moves to another device; Spotify pushes nothing, so the player is polled every 5 seconds while something plays, every minute otherwise, and right after a call changes it.
+
+A widget, `playing`: the art, title and artist, back, play/pause and next, and a rule that runs with the track. Paused, one line; with nothing playing, nothing. It's narrow, made for the top of a space's rail.
 
 A [Switch](https://switch.ax) extension, built on
 [switch-ext-kit](https://github.com/zachsents/switch-ext-kit), through the Spotify Web API. Playback control needs Spotify Premium.

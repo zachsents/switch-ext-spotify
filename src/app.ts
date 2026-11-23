@@ -1,13 +1,13 @@
 // Spotify's tools: playback on any of the user's devices, search, their playlists, library and
 // history, through the Web API. Each fails with Spotify's own error (playback control needs Premium).
 import { Effect, Schema } from "effect"
-import { defineApp, tool } from "switch-ext-kit"
+import { BASIC_CATALOG, defineApp, SWITCH_CATALOG, tool } from "switch-ext-kit"
 
 import pkg from "../package.json"
 import { Spotify } from "./api.ts"
 import type { Query } from "./api.ts"
-import { spotifyEvents } from "./events.ts"
-import { playback } from "./player.ts"
+import { Paused, Playing, Seeked, spotifyEvents, Started } from "./events.ts"
+import { nowPlaying, playback } from "./player.ts"
 import {
   album,
   artist,
@@ -55,6 +55,22 @@ const now = tool(
     readOnly: true,
   },
   () => playback,
+)
+
+// The widget's own: what it draws, and its play-or-pause key.
+
+const playingNow = tool(
+  "playing",
+  { description: "What the widget draws.", readOnly: true, appOnly: true },
+  () => nowPlaying,
+)
+
+const toggle = tool("toggle", { description: "Play or pause.", appOnly: true }, () =>
+  Effect.gen(function* toggling() {
+    const state = yield* playback
+    yield* call("PUT", state.playing ? "/me/player/pause" : "/me/player/play")
+    return { playing: !state.playing }
+  }),
 )
 
 const devices = tool(
@@ -614,6 +630,8 @@ export const spotifyApp = defineApp<Spotify>({
   connections: pkg.extension.connections,
   tools: [
     now,
+    playingNow,
+    toggle,
     devices,
     play,
     pause,
@@ -643,4 +661,47 @@ export const spotifyApp = defineApp<Spotify>({
     top,
   ],
   events: spotifyEvents,
+  widgets: [
+    {
+      name: "playing",
+      title: "Playing",
+      surfaces: ["space"],
+      resource: "ui://spotify/playing",
+      tool: "playing",
+      refresh: [Playing.type, Started.type, Paused.type, Seeked.type],
+      size: { aspect: "wide", empty: "hide" },
+      // Nothing when nothing's playing: the list is empty, so the widget is out of its place.
+      a2ui: () => [
+        { version: "1.0", createSurface: { surfaceId: "playing", catalogId: SWITCH_CATALOG } },
+        {
+          version: "1.0",
+          updateComponents: {
+            surfaceId: "playing",
+            components: [
+              {
+                id: "root",
+                component: "List",
+                catalogId: BASIC_CATALOG,
+                children: { componentId: "now", path: "/now" },
+              },
+              {
+                id: "now",
+                component: "Playing",
+                title: { "@path": "title" },
+                by: { "@path": "by" },
+                art: { "@path": "art" },
+                playing: { "@path": "playing" },
+                at: { "@path": "at" },
+                length: { "@path": "length" },
+                asOf: { "@path": "asOf" },
+                back: "previous",
+                toggle: "toggle",
+                next: "next",
+              },
+            ],
+          },
+        },
+      ],
+    },
+  ],
 })
