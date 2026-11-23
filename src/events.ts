@@ -44,4 +44,22 @@ export const Seeked = defineEvent(
   Schema.Struct({ item: Item, progress_ms: Schema.Finite }),
 )
 
-export const spotifyEvents = [Playing, Started, Paused, DeviceChanged, Seeked]
+/**
+ * The player's reading works, or what's wrong with it now: from the polling loop every 5 minutes
+ * and at once when `failing` changes, so it stops if the loop does.
+ */
+export const Heartbeat = defineEvent(
+  "spotify.heartbeat",
+  1,
+  Schema.Struct({
+    entity: Schema.Literal("sense:spotify"),
+    summary: Schema.String,
+    facts: Schema.Struct({
+      failing: Schema.NullOr(Schema.String),
+      playing: Schema.Boolean,
+      device: Schema.NullOr(Schema.String),
+    }),
+  }),
+)
+
+export const spotifyEvents = [Playing, Started, Paused, DeviceChanged, Seeked, Heartbeat]
