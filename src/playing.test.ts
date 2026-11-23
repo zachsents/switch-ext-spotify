@@ -5,7 +5,7 @@ import { Effect } from "effect"
 
 import { Spotify } from "./api.ts"
 import { artOf, nowPlaying } from "./player.ts"
-import { jumped } from "./watch.ts"
+import { jumped, untilNext } from "./watch.ts"
 
 const images = [
   { url: "big", width: 640 },
@@ -72,4 +72,9 @@ test("a jump is a seek within the same track", () => {
   expect(jumped(at(100_000), at(1000), 5000)).toBe(true)
   expect(jumped(at(10_000, false), at(10_000, false), 60_000)).toBe(false)
   expect(jumped(at(100_000), at(1000, true, "v"), 5000)).toBe(false)
+})
+
+test("playing started elsewhere is read within seconds, not a minute", () => {
+  expect(untilNext(false)).toBeLessThanOrEqual(10_000)
+  expect(untilNext(true)).toBeLessThanOrEqual(5000)
 })

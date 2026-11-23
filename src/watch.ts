@@ -1,6 +1,6 @@
 // Playback events from polling the player, since the Web API pushes nothing: every 5 seconds while
-// something plays, every minute otherwise (paused, nothing playing, not connected), and as long as
-// Spotify asks after a 429. A call that changes the player (from the agent or the widget) has it
+// something plays, every 10 otherwise (paused, nothing playing), every minute while it can't read
+// it (not connected, offline), and as long as Spotify asks after a 429. A call that changes the player (from the agent or the widget) has it
 // read again half a second and two seconds later, once Spotify has caught up. The first reading
 // only sets where things stand.
 import { Effect, Layer } from "effect"
@@ -12,7 +12,11 @@ import { playback } from "./player.ts"
 import type { Playback } from "./player.ts"
 
 const PLAYING_MS = 5000
-const IDLE_MS = 60_000
+/** Paused or nothing playing: soon enough that playing from another app shows within seconds. */
+const IDLE_MS = 10_000
+const FAILED_MS = 60_000
+/** How long until the next reading, as things stand. */
+export const untilNext = (playing: boolean) => (playing ? PLAYING_MS : IDLE_MS)
 /** After a change: when to read again, then again. */
 const SOON_MS = [500, 1500]
 /** How far off where it should be is a jump, not drift. */
@@ -61,7 +65,7 @@ export const watching = Layer.effectDiscard(
         const read = yield* Effect.result(playback)
         if (read._tag === "Failure") {
           const asked = read.failure.retryAfter
-          yield* Effect.sleep(asked === undefined ? IDLE_MS : asked * 1000)
+          yield* Effect.sleep(asked === undefined ? FAILED_MS : asked * 1000)
           continue
         }
         const now = read.success
@@ -73,7 +77,7 @@ export const watching = Layer.effectDiscard(
         lastAt = at
         const [next, ...rest] = soon
         soon = rest
-        const wait = Effect.sleep(next ?? (now.playing ? PLAYING_MS : IDLE_MS))
+        const wait = Effect.sleep(next ?? untilNext(now.playing))
         const changed = yield* Effect.raceFirst(
           Effect.as(wait, false),
           Effect.as(spotify.changed, true),
