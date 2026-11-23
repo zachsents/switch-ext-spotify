@@ -1,0 +1,55 @@
+{
+  "name": "switch-ext-spotify",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Spotify as a Switch extension: playback on every device, search, playlists, the library and history.",
+  "license": "MIT",
+  "repository": "github:zachsents/switch-ext-spotify",
+  "type": "module",
+  "scripts": {
+    "start": "bun src/main.ts",
+    "typecheck": "tsgo --noEmit",
+    "lint": "oxlint --type-aware --fix --fix-suggestions",
+    "format": "oxfmt --write .",
+    "fix": "bun run lint && bun run format",
+    "captions": "ui-captions src",
+    "check": "bun run typecheck && bun run captions && bun run fix"
+  },
+  "dependencies": {
+    "effect": "^4.1.5",
+    "switch-ext-kit": "github:zachsents/switch-ext-kit#8c65cb1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.5",
+    "@typescript/native-preview": "^7.0.0-dev.20260707.2",
+    "oxfmt": "^0.79.0",
+    "oxlint": "^1.94.0",
+    "oxlint-tsgolint": "^7.0.2008",
+    "ultracite": "^8.3.1"
+  },
+  "extension": {
+    "name": "spotify",
+    "main": "src/main.ts",
+    "connections": [
+      {
+        "provider": "spotify",
+        "scopes": [
+          "playlist-modify-private",
+          "playlist-modify-public",
+          "playlist-read-collaborative",
+          "playlist-read-private",
+          "user-follow-modify",
+          "user-follow-read",
+          "user-library-modify",
+          "user-library-read",
+          "user-modify-playback-state",
+          "user-read-currently-playing",
+          "user-read-playback-state",
+          "user-read-recently-played",
+          "user-top-read"
+        ],
+        "multiple": false
+      }
+    ]
+  }
+}
