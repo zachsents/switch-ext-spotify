@@ -31,6 +31,7 @@
   "extension": {
     "name": "spotify",
     "main": "src/main.ts",
+    "heartbeat": 420000,
     "connections": [
       {
         "provider": "spotify",
