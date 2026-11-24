@@ -1,3 +1,5 @@
+**Moved to [zachsents/switch](https://github.com/zachsents/switch/tree/main/extensions/spotify).** This repo is archived.
+
 # switch-ext-spotify
 
 Spotify on every device the user has: playback (play, pause, skip, seek, volume, shuffle, repeat, transfer, the queue), search, their playlists (read, make, edit, add, remove, reorder, replace), their library (saved and followed) and history (recent, top). Events when what's playing changes, when playback starts or pauses, when it jumps within a track, and when it moves to another device; Spotify pushes nothing, so the player is polled every 5 seconds while something plays, every 10 otherwise, and right after a call changes it. `spotify.heartbeat` comes from that polling every 5 minutes and at once when what's failing changes: `failing` is what's wrong with reading the player now, or null.
